@@ -1,0 +1,11 @@
+timestamp,question,answer,sources
+2026-05-17T20:49:36,nội dung file nói về điều gì,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,
+2026-05-17T20:51:19,nội dung file nói về điều gì,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,
+2026-05-17T20:58:00,Chương trình được tổ chức vào thời gian nào?,"Chưa cấu hình OPENAI_API_KEY, dưới đây là các đoạn liên quan nhất trong tài liệu:
+
+[Nguồn 1] sample_document.txt - trang 1 (điểm liên quan: 0.448)
+KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ CÔNG NGHỆ Thời gian dự kiến: 08h00 ngày 26/03/2026. Địa điểm: Hội trường tầng 7, Trường Đại học Khoa học Tự nhiên, ĐHQGHN. Mục đích của chương trình là tạo môi trường để sinh viên tìm hiểu về đổi mới sáng tạo, trí tuệ nhân tạo và ứng dụng công nghệ trong quản lý hoạt động sinh viên. Phân công nhân sự: - Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. - Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. - Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. - Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức.",sample_document.txt|page=1|score=0.448
+2026-05-17T22:40:06,Ai phụ trách hậu cần,"Chưa cấu hình OPENAI_API_KEY, dưới đây là các đoạn liên quan nhất trong tài liệu:
+
+[Nguồn 1] sample_document.txt - trang 1 (điểm liên quan: 0.327)
+KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ CÔNG NGHỆ Thời gian dự kiến: 08h00 ngày 26/03/2026. Địa điểm: Hội trường tầng 7, Trường Đại học Khoa học Tự nhiên, ĐHQGHN. Mục đích của chương trình là tạo môi trường để sinh viên tìm hiểu về đổi mới sáng tạo, trí tuệ nhân tạo và ứng dụng công nghệ trong quản lý hoạt động sinh viên. Phân công nhân sự: - Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. - Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. - Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. - Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức.",sample_document.txt|page=1|score=0.327
