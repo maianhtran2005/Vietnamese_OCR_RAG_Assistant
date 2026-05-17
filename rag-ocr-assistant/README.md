@@ -76,12 +76,6 @@ Windows:
 .venv\Scripts\activate
 ```
 
-macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
 ### Bước 2: Cài thư viện Python
 
 ```bash
@@ -90,24 +84,12 @@ pip install -r requirements.txt
 
 ### Bước 3: Cài Tesseract OCR
 
-Vì OCR dùng `pytesseract`, bạn cần cài thêm phần mềm Tesseract OCR trên máy.
+Vì OCR dùng `pytesseract`, cần cài thêm phần mềm Tesseract OCR trên máy.
 
-Windows: cài Tesseract OCR, sau đó kiểm tra file thường nằm tại:
+Windows: cài Tesseract OCR, sau đó kiểm tra file:
 
 ```text
 C:\Program Files\Tesseract-OCR\tesseract.exe
-```
-
-Ubuntu/Debian:
-
-```bash
-sudo apt-get install tesseract-ocr tesseract-ocr-vie
-```
-
-macOS:
-
-```bash
-brew install tesseract tesseract-lang
 ```
 
 ### Bước 4: Tạo file `.env`
@@ -116,21 +98,20 @@ brew install tesseract tesseract-lang
 copy .env.example .env
 ```
 
-Nếu dùng Windows, sửa trong `.env`:
+Dùng Windows, sửa trong `.env`:
 
 ```env
 TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
 OCR_LANG=vie+eng
 ```
 
-Nếu muốn dùng LLM để sinh câu trả lời tự nhiên, thêm:
+Để sinh câu trả lời tự nhiên, thêm:
 
 ```env
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
-
-Nếu chưa có API key, app vẫn chạy được nhưng sẽ trả về các đoạn liên quan nhất thay vì sinh câu trả lời tự nhiên.
+Khi chưa có API thì câu trả lời sẽ không được tự nhiên lắm.
 
 ## 5. Chạy ứng dụng
 
@@ -172,12 +153,13 @@ Dự án xây dựng hệ thống OCR + Retrieval-Augmented Generation cho tài 
 
 ### Không OCR được tiếng Việt
 
-Kiểm tra đã cài language pack tiếng Việt chưa. Với Ubuntu/Debian, cần có `tesseract-ocr-vie`. Với Windows, kiểm tra thư mục `tessdata` có file tiếng Việt không.
+Kiểm tra đã cài language pack tiếng Việt hay chưa. Với Windows, kiểm tra thư mục `tessdata` có file tiếng Việt không.
 
 ### Streamlit báo chưa có chỉ mục
 
-Bạn cần upload file và bấm **Xây dựng chỉ mục** trước khi hỏi.
+Cần upload file và bấm **Xây dựng chỉ mục** trước khi hỏi.
 
 ### Câu trả lời nói chưa tìm thấy dữ liệu
 
-Có thể do câu hỏi không liên quan đến tài liệu hoặc ngưỡng `min_score` đang quá cao. Hãy giảm ngưỡng trong sidebar từ `0.35` xuống `0.25` để thử lại.
+Có thể do câu hỏi không liên quan đến tài liệu hoặc ngưỡng `min_score` đang quá cao. Khi ngưỡng quá cao cần giảm ngưỡng để đạt kết quả tốt nhất
+
