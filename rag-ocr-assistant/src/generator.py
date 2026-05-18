@@ -5,35 +5,31 @@ import re
 from typing import Dict, List
 
 
-VI_STOPWORDS = {
-    "là", "và", "của", "có", "cho", "trong", "với", "các", "những",
-    "một", "được", "về", "đến", "từ", "theo", "này", "đó", "ai",
-    "gì", "nào", "hãy", "cho", "biết", "nêu", "trình", "bày"
-}
-
-
 def format_sources(contexts: List[Dict]) -> str:
     lines = []
+
     for i, ctx in enumerate(contexts, start=1):
         lines.append(
-            f"[Nguồn {i}] File: {ctx.get('source')} | Trang: {ctx.get('page')} | "
-            f"Phương thức: {ctx.get('method')} | Điểm liên quan: {ctx.get('score', 0):.3f}\n"
+            f"[Nguồn {i}] "
+            f"File: {ctx.get('source')} | "
+            f"Trang: {ctx.get('page')} | "
+            f"Phương thức: {ctx.get('method')} | "
+            f"Điểm liên quan: {ctx.get('score', 0):.3f}\n"
             f"{ctx.get('text')}"
         )
+
     return "\n\n".join(lines)
 
 
 def build_prompt(question: str, contexts: List[Dict]) -> str:
     return f"""
-Bạn là trợ lý hỏi đáp tài liệu tiếng Việt cho chương trình, kế hoạch, báo cáo và phân công nhân sự sinh viên.
+Bạn là trợ lý hỏi đáp tài liệu tiếng Việt.
 
-Nhiệm vụ của bạn:
-- Chỉ trả lời đúng nội dung được hỏi.
-- Không chép lại toàn bộ đoạn nguồn.
-- Không liệt kê lan man các nội dung không liên quan.
-- Mỗi ý trả lời phải có trích dẫn nguồn dạng [Nguồn 1], [Nguồn 2].
-- Nếu ngữ cảnh không đủ căn cứ, hãy trả lời đúng câu:
-"Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên."
+Chỉ sử dụng thông tin trong NGỮ CẢNH để trả lời.
+Chỉ trả lời đúng nội dung được hỏi.
+Không chép lại toàn bộ đoạn nguồn.
+Mỗi ý trả lời cần có trích dẫn nguồn dạng [Nguồn 1], [Nguồn 2].
+Nếu không đủ căn cứ, trả lời: "Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên."
 
 CÂU HỎI:
 {question}
@@ -41,11 +37,10 @@ CÂU HỎI:
 NGỮ CẢNH:
 {format_sources(contexts)}
 
-YÊU CẦU TRẢ LỜI:
-- Trả lời ngắn gọn, trực tiếp vào câu hỏi.
-- Ưu tiên trích xuất chính xác tên người, thời gian, nhiệm vụ, địa điểm, số liệu nếu được hỏi.
-- Không đưa nguyên văn toàn bộ chunk.
-- Không bịa thông tin ngoài ngữ cảnh.
+YÊU CẦU:
+- Trả lời ngắn gọn.
+- Ưu tiên tên người, nhiệm vụ, thời gian, địa điểm, số liệu nếu có.
+- Không bịa thông tin ngoài tài liệu.
 """.strip()
 
 
@@ -66,10 +61,13 @@ def generate_answer(question: str, contexts: List[Dict]) -> str:
                 input=build_prompt(question, contexts),
                 temperature=0.2,
             )
+
             return response.output_text.strip()
+
         except Exception as exc:
             return (
-                "Không gọi được LLM qua API. Hệ thống tạm trích xuất các câu liên quan nhất từ tài liệu.\n\n"
+                "Không gọi được LLM qua API. "
+                "Hệ thống tạm trích xuất nội dung liên quan nhất từ tài liệu.\n\n"
                 f"Chi tiết lỗi: {exc}\n\n"
                 + extractive_answer(question, contexts)
             )
@@ -77,75 +75,187 @@ def generate_answer(question: str, contexts: List[Dict]) -> str:
     return extractive_answer(question, contexts)
 
 
-def normalize_for_match(text: str) -> List[str]:
+def normalize(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"[^\w\sÀ-ỹ]", " ", text)
-    words = text.split()
-    return [w for w in words if w not in VI_STOPWORDS and len(w) > 1]
+    text = re.sub(r"[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
-def split_sentences(text: str) -> List[str]:
+def keywords_from_question(question: str) -> List[str]:
+    stopwords = {
+        "ai", "gì", "nào", "ở", "đâu", "khi", "là", "có", "không",
+        "hãy", "cho", "biết", "nêu", "trình", "bày", "về", "của",
+        "trong", "theo", "tài", "liệu", "phần", "mục", "nội", "dung",
+        "người", "được", "đảm", "nhận", "phụ", "trách"
+    }
+
+    words = normalize(question).split()
+
+    return [w for w in words if w not in stopwords and len(w) >= 2]
+
+
+def split_units(text: str) -> List[str]:
+    """
+    Tách đoạn nguồn thành các đơn vị nhỏ.
+    Ưu tiên giữ từng dòng phân công riêng biệt.
+    """
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    units = []
+
+    for line in text.split("\n"):
+        line = line.strip(" -–—\t")
+
+        if not line:
+            continue
+
+        small_parts = re.split(
+            r"(?<=[.!?])\s+|;\s+|\|\s+|•\s+",
+            line
+        )
+
+        for part in small_parts:
+            part = part.strip(" -–—\t")
+            if len(part.split()) >= 3:
+                units.append(part)
+
+    if units:
+        return units
+
     text = re.sub(r"\s+", " ", text).strip()
+    fallback_units = re.split(r"(?<=[.!?])\s+|;\s+|\|\s+|•\s+", text)
 
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-
-    clean_sentences = []
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if len(sentence.split()) >= 4:
-            clean_sentences.append(sentence)
-
-    return clean_sentences
-
-
-def score_sentence(question: str, sentence: str) -> float:
-    q_words = set(normalize_for_match(question))
-    s_words = set(normalize_for_match(sentence))
-
-    if not q_words or not s_words:
-        return 0.0
-
-    overlap = q_words.intersection(s_words)
-    score = len(overlap) / len(q_words)
-
-    # Ưu tiên câu có thông tin thường gặp trong tài liệu sự kiện
-    bonus_patterns = [
-        r"\d{1,2}/\d{1,2}/\d{4}",
-        r"\d{1,2}h\d{0,2}",
-        r"phụ trách",
-        r"thời gian",
-        r"địa điểm",
-        r"hậu cần",
-        r"truyền thông",
-        r"nhân sự",
-        r"ban tổ chức",
+    return [
+        unit.strip(" -–—\t")
+        for unit in fallback_units
+        if len(unit.split()) >= 3
     ]
 
-    for pattern in bonus_patterns:
-        if re.search(pattern, sentence.lower()):
-            score += 0.08
+
+def get_focus_terms(question: str) -> List[str]:
+    """
+    Lấy trọng tâm cụ thể trong câu hỏi.
+    Không đưa các từ chung như 'phụ trách' vào focus,
+    vì nếu không hệ thống sẽ kéo cả các ban khác.
+    """
+    q = normalize(question)
+
+    important_terms = [
+        "hậu cần",
+        "truyền thông",
+        "kỹ thuật",
+        "nội dung",
+        "nhân sự",
+        "đối ngoại",
+        "tài chính",
+        "văn nghệ",
+        "lễ tân",
+        "an ninh",
+        "y tế",
+        "checkin",
+        "check in",
+        "địa điểm",
+        "thời gian",
+        "kinh phí",
+        "khách mời",
+        "ban tổ chức",
+    ]
+
+    return [term for term in important_terms if term in q]
+
+
+def should_return_multiple(question: str) -> bool:
+    q = normalize(question)
+
+    multiple_signals = [
+        "liệt kê",
+        "danh sách",
+        "những ai",
+        "các ban",
+        "các nhiệm vụ",
+        "toàn bộ",
+        "tất cả",
+        "gồm những",
+        "bao gồm",
+    ]
+
+    return any(signal in q for signal in multiple_signals)
+
+
+def score_unit(question: str, unit: str) -> float:
+    q_norm = normalize(question)
+    u_norm = normalize(unit)
+
+    q_keywords = keywords_from_question(question)
+
+    if not q_keywords and not get_focus_terms(question):
+        return 0.0
+
+    score = 0.0
+
+    for kw in q_keywords:
+        if kw in u_norm:
+            score += 1.0
+
+    focus_terms = get_focus_terms(question)
+
+    for term in focus_terms:
+        if term in u_norm:
+            score += 8.0
+
+    question_task_terms = [
+        "phụ trách",
+        "phân công",
+        "nhiệm vụ",
+        "đảm nhận",
+        "thực hiện",
+    ]
+
+    for term in question_task_terms:
+        if term in q_norm and term in u_norm:
+            score += 2.0
+
+    if "ai" in q_norm:
+        if re.search(r"\b[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+){1,4}\b", unit):
+            score += 1.0
+
+    if "thời gian" in q_norm or "khi nào" in q_norm or "ngày nào" in q_norm:
+        if re.search(r"\d{1,2}/\d{1,2}/\d{2,4}|\d{1,2}h\d{0,2}", unit):
+            score += 3.0
+
+    if "địa điểm" in q_norm or "ở đâu" in q_norm:
+        location_terms = ["tại", "địa điểm", "hội trường", "phòng", "trường", "nhà"]
+        if any(term in u_norm for term in location_terms):
+            score += 3.0
 
     return score
 
 
-def extractive_answer(question: str, contexts: List[Dict], max_sentences: int = 3) -> str:
-    """
-    Fallback khi chưa có OPENAI_API_KEY.
-    Thay vì in toàn bộ chunk, hàm này chỉ chọn các câu liên quan nhất với câu hỏi.
-    """
+def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -> str:
     candidates = []
+    focus_terms = get_focus_terms(question)
 
     for source_index, ctx in enumerate(contexts, start=1):
         text = ctx.get("text", "")
-        sentences = split_sentences(text)
+        units = split_units(text)
 
-        for sentence in sentences:
-            score = score_sentence(question, sentence)
+        for unit in units:
+            unit_norm = normalize(unit)
+
+            if focus_terms:
+                has_focus = any(term in unit_norm for term in focus_terms)
+
+                if not has_focus:
+                    continue
+
+            score = score_unit(question, unit)
+
             if score > 0:
                 candidates.append(
                     {
                         "score": score,
-                        "sentence": sentence,
+                        "text": unit,
                         "source_index": source_index,
                         "source": ctx.get("source"),
                         "page": ctx.get("page"),
@@ -160,23 +270,23 @@ def extractive_answer(question: str, contexts: List[Dict], max_sentences: int = 
     selected = []
     seen = set()
 
-    for item in candidates:
-        sentence = item["sentence"]
+    limit = max_items if should_return_multiple(question) else 1
 
-        if sentence in seen:
+    for item in candidates:
+        text = item["text"]
+
+        if text in seen:
             continue
 
-        seen.add(sentence)
+        seen.add(text)
         selected.append(item)
 
-        if len(selected) >= max_sentences:
+        if len(selected) >= limit:
             break
 
-    answer_lines = ["Dựa trên tài liệu đã tải lên, có thể xác định như sau:"]
+    lines = ["Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:"]
 
     for item in selected:
-        answer_lines.append(
-            f"- {item['sentence']} [Nguồn {item['source_index']}]"
-        )
+        lines.append(f"- {item['text']} [Nguồn {item['source_index']}]")
 
-    return "\n".join(answer_lines)
+    return "\n".join(lines)

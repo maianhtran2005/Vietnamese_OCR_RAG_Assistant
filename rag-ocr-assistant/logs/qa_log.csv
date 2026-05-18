@@ -9,3 +9,43 @@ KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ C�
 
 [Nguồn 1] sample_document.txt - trang 1 (điểm liên quan: 0.327)
 KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ CÔNG NGHỆ Thời gian dự kiến: 08h00 ngày 26/03/2026. Địa điểm: Hội trường tầng 7, Trường Đại học Khoa học Tự nhiên, ĐHQGHN. Mục đích của chương trình là tạo môi trường để sinh viên tìm hiểu về đổi mới sáng tạo, trí tuệ nhân tạo và ứng dụng công nghệ trong quản lý hoạt động sinh viên. Phân công nhân sự: - Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. - Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. - Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. - Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức.",sample_document.txt|page=1|score=0.327
+2026-05-17T23:34:04,ai ,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.251; TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.233
+2026-05-17T23:34:08,Ai phụ trách hậu cần,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.227
+2026-05-17T23:34:43,tên người được nhắc đến là ai,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,
+2026-05-17T23:35:13,email được dùng là gì,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.204
+2026-05-18T08:09:35,Chương trình diễn ra vào thời gian nào,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Thời gian dự kiến: 08h00 ngày 26/03/2026. [Nguồn 1]
+- Mục đích của chương trình là tạo môi trường để sinh viên tìm hiểu về đổi mới sáng tạo, trí tuệ nhân tạo và ứng dụng công nghệ trong quản lý hoạt động sinh viên. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]",sample_document.txt|page=1|score=0.481
+2026-05-18T08:10:01,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Thời gian dự kiến: 08h00 ngày 26/03/2026. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T08:11:58,Email trong file trên,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- opportunity to contribute to AI/ML projects while strengthening practical AI engineering skills. [Nguồn 2]
+- Team Project | Role: Data Preprocessing & Model Fine-tuning Member [Nguồn 1]
+- Prepared Vietnamese text summarization data through cleaning, tokenization, and prompt-completion [Nguồn 1]
+- Supported LoRA/QLoRA fine-tuning of LLaMA 3.1 8B with 4-bit NF4 quantization on Google Colab. [Nguồn 1]",TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.162; TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.125
+2026-05-18T08:13:01,Email trong file trên đặt ở bên phải trên đầu,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Team Project | Role: Data Preprocessing & Model Fine-tuning Member [Nguồn 1]
+- Prepared Vietnamese text summarization data through cleaning, tokenization, and prompt-completion [Nguồn 1]
+- Third-year Data Science student seeking an AI Engineer Internship. Experienced in academic and personal [Nguồn 2]
+- Bachelor of Data Science [Nguồn 2]",TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.150; TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.066
+2026-05-18T08:13:27,Email trong file trên đặt ở bên phải trên đầu,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Team Project | Role: Data Preprocessing & Model Fine-tuning Member [Nguồn 1]
+- Prepared Vietnamese text summarization data through cleaning, tokenization, and prompt-completion [Nguồn 1]
+- Third-year Data Science student seeking an AI Engineer Internship. Experienced in academic and personal [Nguồn 2]
+- Bachelor of Data Science [Nguồn 2]",TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.150; TranThiMaiAnh_AIEngineer.pdf|page=1|score=0.066
+2026-05-18T08:25:43,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T08:25:57,Ai phụ trách truyền thông,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]",sample_document.txt|page=1|score=0.415
+2026-05-18T08:26:13,Địa điểm diễn ra,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Địa điểm: Hội trường tầng 7, Trường Đại học Khoa học Tự nhiên, ĐHQGHN. [Nguồn 1]",sample_document.txt|page=1|score=0.439
+2026-05-18T08:27:12,noise,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Noise 11 / 19 [Nguồn 1]",Noise.pdf|page=11|score=0.725; Noise.pdf|page=3|score=0.725; Noise.pdf|page=5|score=0.708; Noise.pdf|page=4|score=0.695; Noise.pdf|page=1|score=0.643; Noise.pdf|page=10|score=0.641
+2026-05-18T08:29:22,nội dung trong file,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,LICENSE.txt|page=1|score=0.170
+2026-05-18T08:30:01,2018-2024,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Copyright (c) 2018-2024, Uwe Schmidt, Martin Weigert [Nguồn 1]",LICENSE.txt|page=1|score=0.448

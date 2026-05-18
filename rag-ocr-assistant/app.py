@@ -25,13 +25,14 @@ with st.sidebar:
     st.header("Cấu hình")
     use_ocr = st.toggle("Dùng OCR nếu PDF là bản scan", value=True)
     ocr_lang = st.text_input("Ngôn ngữ OCR", value=os.getenv("OCR_LANG", "vie+eng"))
-    chunk_size = st.slider("Chunk size / số từ", min_value=150, max_value=900, value=450, step=50)
-    overlap = st.slider("Overlap / số từ", min_value=20, max_value=200, value=80, step=10)
-    top_k = st.slider("Số đoạn truy xuất", min_value=1, max_value=8, value=4)
-    min_score = st.slider("Ngưỡng liên quan", min_value=0.00, max_value=0.80, value=0.10, step=0.05)
+    chunk_size = st.slider("Chunk size / số từ", min_value=100, max_value=700, value=250, step=50)
+    overlap = st.slider("Overlap / số từ", min_value=20, max_value=150, value=40, step=10)
+    top_k = st.slider("Số đoạn truy xuất", min_value=1, max_value=10, value=6)
+    min_score = st.slider("Ngưỡng liên quan", min_value=0.00, max_value=0.80, value=0.00, step=0.05)
 
     st.divider()
-    st.write("**Lưu ý:** Nếu chưa cấu hình `OPENAI_API_KEY`, app vẫn trả về các đoạn liên quan nhất thay vì gọi LLM.")
+    st.write("**Gợi ý test:** để `Ngưỡng liên quan = 0.00` trong giai đoạn debug.")
+    st.write("Nếu chưa có `OPENAI_API_KEY`, app sẽ trích xuất dòng liên quan nhất thay vì sinh câu trả lời bằng LLM.")
 
 uploaded_files = st.file_uploader(
     "Tải tài liệu .txt hoặc .pdf",
@@ -45,6 +46,8 @@ if "embedder" not in st.session_state:
     st.session_state.embedder = None
 if "chunks" not in st.session_state:
     st.session_state.chunks = []
+if "docs" not in st.session_state:
+    st.session_state.docs = []
 
 col1, col2 = st.columns([1, 1])
 
@@ -56,7 +59,9 @@ with col2:
 
 if clear_index:
     st.session_state.store = None
+    st.session_state.embedder = None
     st.session_state.chunks = []
+    st.session_state.docs = []
     st.success("Đã xóa chỉ mục trong phiên hiện tại.")
 
 if build_index:
@@ -73,8 +78,13 @@ if build_index:
                 status.write(f"Đang xử lý: {file.name}")
                 file_path = tmp_dir / file.name
                 file_path.write_bytes(file.getbuffer())
-                docs = load_document(file_path, use_ocr_if_needed=use_ocr, ocr_lang=ocr_lang)
-                all_docs.extend(docs)
+
+                try:
+                    docs = load_document(file_path, use_ocr_if_needed=use_ocr, ocr_lang=ocr_lang)
+                    all_docs.extend(docs)
+                except Exception as exc:
+                    st.error(f"Lỗi khi đọc file {file.name}: {exc}")
+
                 progress.progress(i / len(uploaded_files))
 
         if not all_docs:
@@ -94,6 +104,7 @@ if build_index:
                 st.session_state.embedder = embedder
                 st.session_state.store = store
                 st.session_state.chunks = chunks
+                st.session_state.docs = all_docs
 
                 st.success(f"Đã tạo chỉ mục: {len(all_docs)} trang/đơn vị văn bản, {len(chunks)} chunks.")
 
@@ -113,7 +124,12 @@ if ask:
         st.warning("Bạn cần xây dựng chỉ mục trước khi hỏi.")
     else:
         query_vector = st.session_state.embedder.encode([question])
-        contexts = st.session_state.store.search(query_vector, top_k=top_k, min_score=min_score)
+        contexts = st.session_state.store.search(
+            query_vector,
+            query_text=question,
+            top_k=top_k,
+            min_score=min_score,
+        )
 
         answer = generate_answer(question, contexts)
         log_qa(question, answer, contexts)
@@ -121,18 +137,26 @@ if ask:
         st.subheader("Câu trả lời")
         st.markdown(answer)
 
-        with st.expander("Xem nguồn truy xuất"):
+        with st.expander("Xem nguồn truy xuất", expanded=True):
             if not contexts:
-                st.info("Không có đoạn nào vượt ngưỡng liên quan.")
+                st.info("Không có đoạn nào được truy xuất. Hãy đặt ngưỡng liên quan = 0.00 và xây dựng lại chỉ mục.")
             for i, ctx in enumerate(contexts, start=1):
                 st.markdown(
                     f"**[Nguồn {i}]** `{ctx.get('source')}` — trang `{ctx.get('page')}` — "
-                    f"method `{ctx.get('method')}` — score `{ctx.get('score', 0):.3f}`"
+                    f"method `{ctx.get('method')}` — score `{ctx.get('score', 0):.3f}` — "
+                    f"semantic `{ctx.get('semantic_score', 0):.3f}` — keyword `{ctx.get('keyword_score', 0):.3f}`"
                 )
                 st.write(ctx.get("text"))
                 st.divider()
 
 with st.expander("Xem thống kê phiên hiện tại"):
-    st.write({"chunks": len(st.session_state.chunks)})
+    st.write({"documents/pages": len(st.session_state.docs), "chunks": len(st.session_state.chunks)})
+
+    if st.session_state.docs:
+        st.markdown("**Văn bản trích xuất mẫu:**")
+        st.text(st.session_state.docs[0].get("text", "")[:1000])
+
     if st.session_state.chunks:
-        st.write(st.session_state.chunks[:3])
+        st.markdown("**3 chunks đầu tiên:**")
+        for c in st.session_state.chunks[:3]:
+            st.code(c.get("text", "")[:1000])
