@@ -49,3 +49,78 @@ KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ C�
 2026-05-18T08:29:22,nội dung trong file,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,LICENSE.txt|page=1|score=0.170
 2026-05-18T08:30:01,2018-2024,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
 - Copyright (c) 2018-2024, Uwe Schmidt, Martin Weigert [Nguồn 1]",LICENSE.txt|page=1|score=0.448
+2026-05-18T09:06:23,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T09:07:54,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T09:08:12,người phụ trách từng phần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]",sample_document.txt|page=1|score=0.357
+2026-05-18T09:08:44,ý tôi là phân công nhân sự,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.464
+2026-05-18T09:08:57,ý tôi là phân công nhân sự thì có những ban nào,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.436
+2026-05-18T09:09:13,"ý tôi là phân công nhân sự thì có những ban nào, liệt kê ra đi","Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.416
+2026-05-18T09:09:16,"ý tôi là phân công nhân sự thì có những ban nào, liệt kê ra đi","Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.416
+2026-05-18T09:09:18,"ý tôi là phân công nhân sự thì có những ban nào, liệt kê ra đi","Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.416
+2026-05-18T09:12:20,liệt kê các ban phụ trách,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.456
+2026-05-18T09:28:54,liệt kê các ban,"Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.417
+2026-05-18T09:31:44,liệt kê các ban,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Phân công nhân sự: - Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]",sample_document.txt|page=1|score=0.417
+2026-05-18T09:37:56,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- KẾ HOẠCH TỔ CHỨC CHƯƠNG TRÌNH SINH VIÊN VỚI KHỞI NGHIỆP VÀ CÔNG NGHỆ Thời gian dự kiến: 08h00 ngày 26/03/ [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T09:44:19,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T09:44:31,liệt kê các ban,"Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.417
+2026-05-18T09:44:52,Liệt kê các ban phụ trách trong chương trình.,"Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.494
+2026-05-18T09:59:30,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T10:28:46,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T10:29:06,liệt kê các ban,"Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.417
+2026-05-18T10:39:23,Ai phụ trách hậu cần,"Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]",sample_document.txt|page=1|score=0.496
+2026-05-18T10:39:43,Liệt kê các ban phụ trách trong chương trình.,"Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:
+- Ban Kỹ thuật: phụ trách âm thanh, trình chiếu, đường truyền mạng và thiết bị check-in. [Nguồn 1]
+- Ban Truyền thông: thiết kế ấn phẩm, đăng bài trước và sau chương trình. [Nguồn 1]
+- Ban Nội dung: xây dựng kịch bản, câu hỏi giao lưu và tài liệu truyền thông. [Nguồn 1]
+- Ban Hậu cần: chuẩn bị hội trường, nước uống, bảng tên, check-in và điều phối vị trí ngồi. [Nguồn 1]
+- Yêu cầu thực hiện: Các bộ phận hoàn thành công việc trước 17h00 ngày 24/03/2026 và báo cáo tiến độ về Ban Tổ chức. [Nguồn 1]
+- Phân công nhân sự: [Nguồn 1]",sample_document.txt|page=1|score=0.494
+2026-05-18T10:39:57,chuoan,Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên.,sample_document.txt|page=1|score=0.120

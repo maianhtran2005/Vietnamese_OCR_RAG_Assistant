@@ -10,11 +10,8 @@ def format_sources(contexts: List[Dict]) -> str:
 
     for i, ctx in enumerate(contexts, start=1):
         lines.append(
-            f"[Nguồn {i}] "
-            f"File: {ctx.get('source')} | "
-            f"Trang: {ctx.get('page')} | "
-            f"Phương thức: {ctx.get('method')} | "
-            f"Điểm liên quan: {ctx.get('score', 0):.3f}\n"
+            f"[Nguồn {i}] File: {ctx.get('source')} | Trang: {ctx.get('page')} | "
+            f"Phương thức: {ctx.get('method')} | Điểm liên quan: {ctx.get('score', 0):.3f}\n"
             f"{ctx.get('text')}"
         )
 
@@ -26,8 +23,7 @@ def build_prompt(question: str, contexts: List[Dict]) -> str:
 Bạn là trợ lý hỏi đáp tài liệu tiếng Việt.
 
 Chỉ sử dụng thông tin trong NGỮ CẢNH để trả lời.
-Chỉ trả lời đúng nội dung được hỏi.
-Không chép lại toàn bộ đoạn nguồn.
+Chỉ trả lời đúng nội dung được hỏi, không chép lại toàn bộ đoạn nguồn.
 Mỗi ý trả lời cần có trích dẫn nguồn dạng [Nguồn 1], [Nguồn 2].
 Nếu không đủ căn cứ, trả lời: "Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên."
 
@@ -61,13 +57,12 @@ def generate_answer(question: str, contexts: List[Dict]) -> str:
                 input=build_prompt(question, contexts),
                 temperature=0.2,
             )
-
             return response.output_text.strip()
 
         except Exception as exc:
             return (
                 "Không gọi được LLM qua API. "
-                "Hệ thống tạm trích xuất nội dung liên quan nhất từ tài liệu.\n\n"
+                "Hệ thống tạm trích xuất các dòng liên quan nhất từ tài liệu.\n\n"
                 f"Chi tiết lỗi: {exc}\n\n"
                 + extractive_answer(question, contexts)
             )
@@ -77,7 +72,12 @@ def generate_answer(question: str, contexts: List[Dict]) -> str:
 
 def normalize(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]", " ", text)
+    text = re.sub(
+        r"[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩ"
+        r"òóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]",
+        " ",
+        text,
+    )
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
@@ -87,11 +87,11 @@ def keywords_from_question(question: str) -> List[str]:
         "ai", "gì", "nào", "ở", "đâu", "khi", "là", "có", "không",
         "hãy", "cho", "biết", "nêu", "trình", "bày", "về", "của",
         "trong", "theo", "tài", "liệu", "phần", "mục", "nội", "dung",
-        "người", "được", "đảm", "nhận", "phụ", "trách"
+        "người", "được", "đảm", "nhận", "phụ", "trách", "gồm",
+        "những", "các", "là", "bao", "nhiêu"
     }
 
     words = normalize(question).split()
-
     return [w for w in words if w not in stopwords and len(w) >= 2]
 
 
@@ -112,7 +112,7 @@ def split_units(text: str) -> List[str]:
 
         small_parts = re.split(
             r"(?<=[.!?])\s+|;\s+|\|\s+|•\s+",
-            line
+            line,
         )
 
         for part in small_parts:
@@ -136,8 +136,7 @@ def split_units(text: str) -> List[str]:
 def get_focus_terms(question: str) -> List[str]:
     """
     Lấy trọng tâm cụ thể trong câu hỏi.
-    Không đưa các từ chung như 'phụ trách' vào focus,
-    vì nếu không hệ thống sẽ kéo cả các ban khác.
+    Ví dụ: hỏi 'Ban hậu cần gồm những ai?' thì focus_terms = ['hậu cần'].
     """
     q = normalize(question)
 
@@ -166,6 +165,9 @@ def get_focus_terms(question: str) -> List[str]:
 
 
 def should_return_multiple(question: str) -> bool:
+    """
+    Xác định câu hỏi có yêu cầu liệt kê hay không.
+    """
     q = normalize(question)
 
     multiple_signals = [
@@ -173,11 +175,16 @@ def should_return_multiple(question: str) -> bool:
         "danh sách",
         "những ai",
         "các ban",
+        "các bộ phận",
         "các nhiệm vụ",
+        "các nội dung",
         "toàn bộ",
         "tất cả",
         "gồm những",
         "bao gồm",
+        "có những",
+        "nêu các",
+        "kể tên",
     ]
 
     return any(signal in q for signal in multiple_signals)
@@ -188,8 +195,9 @@ def score_unit(question: str, unit: str) -> float:
     u_norm = normalize(unit)
 
     q_keywords = keywords_from_question(question)
+    focus_terms = get_focus_terms(question)
 
-    if not q_keywords and not get_focus_terms(question):
+    if not q_keywords and not focus_terms:
         return 0.0
 
     score = 0.0
@@ -198,43 +206,44 @@ def score_unit(question: str, unit: str) -> float:
         if kw in u_norm:
             score += 1.0
 
-    focus_terms = get_focus_terms(question)
-
     for term in focus_terms:
         if term in u_norm:
-            score += 8.0
+            score += 10.0
 
-    question_task_terms = [
+    task_terms = [
         "phụ trách",
         "phân công",
         "nhiệm vụ",
         "đảm nhận",
         "thực hiện",
+        "ban",
+        "bộ phận",
     ]
 
-    for term in question_task_terms:
+    for term in task_terms:
         if term in q_norm and term in u_norm:
             score += 2.0
 
-    if "ai" in q_norm:
-        if re.search(r"\b[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+){1,4}\b", unit):
+    if "ai" in q_norm or "những ai" in q_norm:
+        if re.search(r"\b[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+){1,5}\b", unit):
             score += 1.0
 
     if "thời gian" in q_norm or "khi nào" in q_norm or "ngày nào" in q_norm:
         if re.search(r"\d{1,2}/\d{1,2}/\d{2,4}|\d{1,2}h\d{0,2}", unit):
-            score += 3.0
+            score += 5.0
 
     if "địa điểm" in q_norm or "ở đâu" in q_norm:
         location_terms = ["tại", "địa điểm", "hội trường", "phòng", "trường", "nhà"]
         if any(term in u_norm for term in location_terms):
-            score += 3.0
+            score += 5.0
 
     return score
 
 
-def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -> str:
+def extractive_answer(question: str, contexts: List[Dict], max_items: int = 6) -> str:
     candidates = []
     focus_terms = get_focus_terms(question)
+    is_multiple = should_return_multiple(question)
 
     for source_index, ctx in enumerate(contexts, start=1):
         text = ctx.get("text", "")
@@ -243,6 +252,9 @@ def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -
         for unit in units:
             unit_norm = normalize(unit)
 
+            # Quan trọng:
+            # Nếu câu hỏi có trọng tâm như "hậu cần", thì dù câu hỏi có dạng liệt kê
+            # vẫn chỉ lấy các dòng/câu chứa đúng trọng tâm đó.
             if focus_terms:
                 has_focus = any(term in unit_norm for term in focus_terms)
 
@@ -250,6 +262,26 @@ def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -
                     continue
 
             score = score_unit(question, unit)
+
+            if is_multiple:
+                listing_terms = [
+                    "ban",
+                    "bộ phận",
+                    "phụ trách",
+                    "nhiệm vụ",
+                    "phân công",
+                    "đảm nhận",
+                    "truyền thông",
+                    "hậu cần",
+                    "kỹ thuật",
+                    "nội dung",
+                    "nhân sự",
+                    "đối ngoại",
+                    "lễ tân",
+                ]
+
+                if any(term in unit_norm for term in listing_terms):
+                    score += 5.0
 
             if score > 0:
                 candidates.append(
@@ -270,7 +302,7 @@ def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -
     selected = []
     seen = set()
 
-    limit = max_items if should_return_multiple(question) else 1
+    limit = max_items if is_multiple else 1
 
     for item in candidates:
         text = item["text"]
@@ -284,7 +316,10 @@ def extractive_answer(question: str, contexts: List[Dict], max_items: int = 4) -
         if len(selected) >= limit:
             break
 
-    lines = ["Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:"]
+    if is_multiple:
+        lines = ["Dựa trên tài liệu đã tải lên, các nội dung liên quan gồm:"]
+    else:
+        lines = ["Dựa trên tài liệu đã tải lên, nội dung liên quan trực tiếp là:"]
 
     for item in selected:
         lines.append(f"- {item['text']} [Nguồn {item['source_index']}]")

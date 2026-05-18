@@ -15,12 +15,126 @@ from src.logger import log_qa
 from src.retriever import VectorStore
 
 load_dotenv()
+def reset_document_state() -> None:
+    """
+    Reset toàn bộ tài liệu, chunks, vector store và widget upload file.
+    Không xóa log hỏi đáp.
+    """
+    keys_to_clear = [
+        "store",
+        "embedder",
+        "docs",
+        "documents",
+        "chunks",
+        "uploaded_file_name",
+        "current_file",
+        "last_answer",
+        "last_contexts",
+        "messages",
+    ]
 
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+
+    # Đổi key của file_uploader để Streamlit xóa file upload cũ khỏi giao diện
+    st.session_state.uploader_reset_counter = (
+        st.session_state.get("uploader_reset_counter", 0) + 1
+    )
+
+    # Xóa file index nếu có lưu trong storage
+    storage_dir = Path("storage")
+    if storage_dir.exists():
+        for file_path in storage_dir.glob("*"):
+            if file_path.is_file():
+                file_path.unlink()
+
+    st.cache_data.clear()
+    st.cache_resource.clear()
+def render_answer(answer: str) -> None:
+    st.subheader("Câu trả lời")
+
+    if not answer or not answer.strip():
+        st.warning("Chưa tạo được câu trả lời.")
+        return
+
+    if "Tôi chưa tìm thấy dữ liệu đủ căn cứ" in answer:
+        st.warning(answer)
+    else:
+        st.markdown(answer)
+
+
+def render_sources(contexts) -> None:
+    st.subheader("Nguồn trích xuất")
+
+    if not contexts:
+        st.info("Không có nguồn trích xuất phù hợp.")
+        return
+
+    for index, ctx in enumerate(contexts, start=1):
+        source = ctx.get("source", "Không rõ file")
+        page = ctx.get("page", "Không rõ")
+        method = ctx.get("method", "Không rõ")
+        score = ctx.get("score", 0)
+        text = ctx.get("text", "")
+
+        with st.expander(f"Nguồn {index} | File: {source} | Trang: {page} | Điểm: {score:.3f}"):
+            st.caption(f"Phương thức đọc tài liệu: {method}")
+            st.markdown("**Đoạn tài liệu được truy xuất:**")
+            st.text_area(
+                label=f"Nội dung nguồn {index}",
+                value=text,
+                height=180,
+                disabled=True,
+                key=f"source_text_{index}",
+            )
+def get_confidence_level(contexts) -> tuple[str, str]:
+    """
+    Đánh giá độ tin cậy dựa trên nguồn truy xuất.
+    Đây không phải độ đúng tuyệt đối, mà là mức độ hệ thống tìm được nguồn phù hợp.
+    """
+    if not contexts:
+        return "Thấp", "Không tìm thấy nguồn liên quan trong tài liệu."
+
+    best_score = max(float(ctx.get("score", 0)) for ctx in contexts)
+    best_semantic = max(float(ctx.get("semantic_score", 0)) for ctx in contexts)
+    best_keyword = max(float(ctx.get("keyword_score", 0)) for ctx in contexts)
+
+    if best_score >= 0.65 or best_keyword >= 0.50 or best_semantic >= 0.55:
+        return "Cao", (
+            f"Nguồn truy xuất có mức liên quan tốt "
+            f"(score={best_score:.3f}, semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+        )
+
+    if best_score >= 0.30 or best_keyword >= 0.20 or best_semantic >= 0.30:
+        return "Trung bình", (
+            f"Hệ thống tìm được nguồn có liên quan nhưng chưa thật mạnh "
+            f"(score={best_score:.3f}, semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+        )
+
+    return "Thấp", (
+        f"Nguồn truy xuất yếu, nên kiểm tra lại đoạn trích trước khi sử dụng "
+        f"(score={best_score:.3f}, semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+    )
+
+
+def render_confidence(contexts) -> None:
+    level, reason = get_confidence_level(contexts)
+
+    if level == "Cao":
+        st.success(f"Độ tin cậy: {level}")
+    elif level == "Trung bình":
+        st.warning(f"Độ tin cậy: {level}")
+    else:
+        st.error(f"Độ tin cậy: {level}")
+
+    st.caption(reason)
 st.set_page_config(page_title="Vietnamese OCR + RAG Assistant", page_icon="📄", layout="wide")
 
 st.title("📄 Vietnamese OCR + RAG Assistant")
 st.caption("Chatbot hỏi đáp tài liệu tiếng Việt cho kế hoạch, báo cáo, chương trình và phân công nhân sự.")
-
+if "uploader_reset_counter" not in st.session_state:
+    st.session_state.uploader_reset_counter = 0
 with st.sidebar:
     st.header("Cấu hình")
     use_ocr = st.toggle("Dùng OCR nếu PDF là bản scan", value=True)
@@ -31,13 +145,17 @@ with st.sidebar:
     min_score = st.slider("Ngưỡng liên quan", min_value=0.00, max_value=0.80, value=0.00, step=0.05)
 
     st.divider()
-    st.write("**Gợi ý test:** để `Ngưỡng liên quan = 0.00` trong giai đoạn debug.")
-    st.write("Nếu chưa có `OPENAI_API_KEY`, app sẽ trích xuất dòng liên quan nhất thay vì sinh câu trả lời bằng LLM.")
+
+    if st.button("Reset toàn bộ tài liệu", use_container_width=True):
+        reset_document_state()
+        st.success("Đã reset toàn bộ tài liệu, chỉ mục và file upload cũ.")
+        st.rerun()
 
 uploaded_files = st.file_uploader(
     "Tải tài liệu .txt hoặc .pdf",
     type=["txt", "pdf"],
     accept_multiple_files=True,
+    key=f"uploaded_files_{st.session_state.uploader_reset_counter}",
 )
 
 if "store" not in st.session_state:
@@ -58,11 +176,9 @@ with col2:
     clear_index = st.button("Xóa chỉ mục hiện tại", use_container_width=True)
 
 if clear_index:
-    st.session_state.store = None
-    st.session_state.embedder = None
-    st.session_state.chunks = []
-    st.session_state.docs = []
-    st.success("Đã xóa chỉ mục trong phiên hiện tại.")
+    reset_document_state()
+    st.success("Đã xóa chỉ mục, tài liệu và file upload hiện tại.")
+    st.rerun()
 
 if build_index:
     if not uploaded_files:
@@ -134,20 +250,12 @@ if ask:
         answer = generate_answer(question, contexts)
         log_qa(question, answer, contexts)
 
-        st.subheader("Câu trả lời")
-        st.markdown(answer)
+        render_answer(answer)
+        render_confidence(contexts)
+        st.divider()
 
-        with st.expander("Xem nguồn truy xuất", expanded=True):
-            if not contexts:
-                st.info("Không có đoạn nào được truy xuất. Hãy đặt ngưỡng liên quan = 0.00 và xây dựng lại chỉ mục.")
-            for i, ctx in enumerate(contexts, start=1):
-                st.markdown(
-                    f"**[Nguồn {i}]** `{ctx.get('source')}` — trang `{ctx.get('page')}` — "
-                    f"method `{ctx.get('method')}` — score `{ctx.get('score', 0):.3f}` — "
-                    f"semantic `{ctx.get('semantic_score', 0):.3f}` — keyword `{ctx.get('keyword_score', 0):.3f}`"
-                )
-                st.write(ctx.get("text"))
-                st.divider()
+        with st.expander("Xem nguồn trích xuất từ tài liệu", expanded=False):
+            render_sources(contexts)
 
 with st.expander("Xem thống kê phiên hiện tại"):
     st.write({"documents/pages": len(st.session_state.docs), "chunks": len(st.session_state.chunks)})
