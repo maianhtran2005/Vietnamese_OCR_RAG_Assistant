@@ -40,36 +40,61 @@ YÊU CẦU:
 """.strip()
 
 
-def generate_answer(question: str, contexts: List[Dict]) -> str:
+def generate_answer(
+    question: str,
+    contexts: List[Dict],
+    answer_mode: str = "extractive",
+) -> str:
     if not contexts:
         return "Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên."
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    # Chế độ an toàn: chỉ trích xuất từ tài liệu
+    if answer_mode == "extractive":
+        return extractive_answer(question, contexts)
 
-    if api_key:
-        try:
-            from openai import OpenAI
+    provider = os.getenv("LLM_PROVIDER", "gemini").lower().strip()
 
-            client = OpenAI(api_key=api_key)
-            response = client.responses.create(
-                model=model,
-                input=build_prompt(question, contexts),
-                temperature=0.2,
+    if answer_mode == "llm" and provider == "gemini":
+        api_key = os.getenv("GEMINI_API_KEY")
+        model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+        if not api_key:
+            return (
+                "Bạn đang chọn chế độ LLM nhưng chưa cấu hình GEMINI_API_KEY. "
+                "Hệ thống tạm chuyển sang chế độ trích xuất an toàn.\n\n"
+                + extractive_answer(question, contexts)
             )
-            return response.output_text.strip()
+
+        try:
+            from google import genai
+
+            client = genai.Client(api_key=api_key)
+
+            response = client.models.generate_content(
+                model=model,
+                contents=build_prompt(question, contexts),
+            )
+
+            answer = getattr(response, "text", "").strip()
+
+            if not answer:
+                return (
+                    "Gemini không trả về nội dung hợp lệ. "
+                    "Hệ thống tạm chuyển sang chế độ trích xuất an toàn.\n\n"
+                    + extractive_answer(question, contexts)
+                )
+
+            return answer
 
         except Exception as exc:
             return (
-                "Không gọi được LLM qua API. "
-                "Hệ thống tạm trích xuất các dòng liên quan nhất từ tài liệu.\n\n"
+                "Không gọi được Gemini API. "
+                "Hệ thống tạm chuyển sang chế độ trích xuất an toàn.\n\n"
                 f"Chi tiết lỗi: {exc}\n\n"
                 + extractive_answer(question, contexts)
             )
 
     return extractive_answer(question, contexts)
-
-
 def normalize(text: str) -> str:
     text = text.lower()
     text = re.sub(
