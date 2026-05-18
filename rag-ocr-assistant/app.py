@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -21,17 +22,19 @@ def reset_document_state() -> None:
     Không xóa log hỏi đáp.
     """
     keys_to_clear = [
-        "store",
-        "embedder",
-        "docs",
-        "documents",
-        "chunks",
-        "uploaded_file_name",
-        "current_file",
-        "last_answer",
-        "last_contexts",
-        "messages",
-    ]
+    "store",
+    "embedder",
+    "docs",
+    "documents",
+    "chunks",
+    "uploaded_file_name",
+    "current_file",
+    "last_answer",
+    "last_contexts",
+    "messages",
+    "last_uploaded_signature",
+    "indexed_signature",
+]
 
     for key in keys_to_clear:
         if key in st.session_state:
@@ -51,6 +54,53 @@ def reset_document_state() -> None:
 
     st.cache_data.clear()
     st.cache_resource.clear()
+def clear_index_state_only() -> None:
+    """
+    Chỉ xóa index và dữ liệu đã xử lý.
+    Không xóa file đang upload trên giao diện.
+    Dùng khi phát hiện người dùng upload file mới.
+    """
+    keys_to_clear = [
+        "store",
+        "embedder",
+        "docs",
+        "documents",
+        "chunks",
+        "last_answer",
+        "last_contexts",
+        "messages",
+    ]
+
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+
+    storage_dir = Path("storage")
+    if storage_dir.exists():
+        for file_path in storage_dir.glob("*"):
+            if file_path.is_file():
+                file_path.unlink()
+
+    st.cache_data.clear()
+    st.cache_resource.clear()
+
+
+def get_uploaded_files_signature(uploaded_files) -> tuple | None:
+    """
+    Tạo dấu hiệu nhận biết bộ file đang upload.
+    Nếu người dùng đổi file, tên file hoặc dung lượng sẽ khác.
+    """
+    if not uploaded_files:
+        return None
+
+    signature = []
+
+    for file in uploaded_files:
+        file_name = getattr(file, "name", "")
+        file_size = getattr(file, "size", 0)
+        signature.append((file_name, file_size))
+
+    return tuple(sorted(signature))
 def render_answer(answer: str) -> None:
     st.subheader("Câu trả lời")
 
@@ -129,6 +179,145 @@ def render_confidence(contexts) -> None:
         st.error(f"Độ tin cậy: {level}")
 
     st.caption(reason)
+def normalize_for_refuse(text: str) -> str:
+    text = text.lower()
+    text = re.sub(
+        r"[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩ"
+        r"òóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]",
+        " ",
+        text,
+    )
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def is_broad_document_question(question: str) -> bool:
+    """
+    Các câu hỏi tổng quát được phép trả lời nếu có tài liệu,
+    ví dụ: tóm tắt tài liệu, nội dung chính là gì.
+    """
+    q = normalize_for_refuse(question)
+
+    broad_signals = [
+        "tóm tắt",
+        "nội dung chính",
+        "tài liệu nói gì",
+        "văn bản nói gì",
+        "khái quát",
+        "tổng quan",
+        "cho biết nội dung",
+    ]
+
+    return any(signal in q for signal in broad_signals)
+
+
+def extract_question_terms(question: str) -> list[str]:
+    """
+    Lấy từ/cụm từ trọng tâm của câu hỏi.
+    Mục tiêu: câu hỏi ngoài tài liệu như 'hiệu trưởng là ai'
+    phải bắt buộc tìm thấy 'hiệu trưởng' trong nguồn, nếu không thì từ chối.
+    """
+    q = normalize_for_refuse(question)
+
+    phrase_terms = [
+        "hậu cần",
+        "truyền thông",
+        "kỹ thuật",
+        "nội dung",
+        "nhân sự",
+        "đối ngoại",
+        "tài chính",
+        "văn nghệ",
+        "lễ tân",
+        "an ninh",
+        "y tế",
+        "checkin",
+        "check in",
+        "địa điểm",
+        "thời gian",
+        "kinh phí",
+        "khách mời",
+        "ban tổ chức",
+        "hiệu trưởng",
+        "thời tiết",
+        "ngày sinh",
+        "điểm thi",
+        "kết quả học tập",
+    ]
+
+    terms = [term for term in phrase_terms if term in q]
+
+    stopwords = {
+        "ai", "gì", "nào", "ở", "đâu", "khi", "là", "có", "không",
+        "hãy", "cho", "biết", "nêu", "trình", "bày", "về", "của",
+        "trong", "theo", "tài", "liệu", "văn", "bản", "phần", "mục",
+        "nội", "dung", "người", "được", "đảm", "nhận", "phụ", "trách",
+        "gồm", "những", "các", "bao", "nhiêu", "trường", "đại", "học",
+        "khoa", "tự", "nhiên", "chương", "trình", "này", "đó", "của",
+    }
+
+    words = q.split()
+
+    for word in words:
+        if word not in stopwords and len(word) >= 3:
+            terms.append(word)
+
+    unique_terms = []
+    for term in terms:
+        if term not in unique_terms:
+            unique_terms.append(term)
+
+    return unique_terms
+
+
+def should_refuse_answer(question: str, contexts) -> tuple[bool, str]:
+    """
+    Từ chối trả lời nếu:
+    - Không có nguồn;
+    - Câu hỏi có từ khóa trọng tâm nhưng nguồn không chứa từ khóa đó;
+    - Điểm truy xuất quá yếu.
+    """
+    if not contexts:
+        return True, "Không tìm thấy nguồn liên quan trong tài liệu."
+
+    best_score = max(float(ctx.get("score", 0)) for ctx in contexts)
+    best_semantic = max(float(ctx.get("semantic_score", 0)) for ctx in contexts)
+    best_keyword = max(float(ctx.get("keyword_score", 0)) for ctx in contexts)
+
+    context_text = " ".join(str(ctx.get("text", "")) for ctx in contexts)
+    context_norm = normalize_for_refuse(context_text)
+
+    # Cho phép câu hỏi tổng quát nếu có nguồn tương đối ổn
+    if is_broad_document_question(question):
+        if best_score < 0.10 and best_semantic < 0.15 and best_keyword < 0.05:
+            return True, (
+                f"Nguồn truy xuất quá yếu cho câu hỏi tổng quát "
+                f"(score={best_score:.3f}, semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+            )
+        return False, "Câu hỏi tổng quát về tài liệu, cho phép trả lời."
+
+    question_terms = extract_question_terms(question)
+    matched_terms = [term for term in question_terms if term in context_norm]
+
+    # Chặn mạnh nhất: câu hỏi có từ khóa trọng tâm nhưng nguồn không chứa từ khóa đó
+    if question_terms and not matched_terms:
+        return True, (
+            "Không tìm thấy từ khóa trọng tâm của câu hỏi trong nguồn truy xuất. "
+            f"Từ khóa câu hỏi: {', '.join(question_terms[:8])}."
+        )
+
+    # Chặn trường hợp retriever lấy bừa nguồn gần nhất
+    if best_score < 0.25 and best_semantic < 0.35 and best_keyword < 0.15:
+        return True, (
+            f"Nguồn truy xuất yếu "
+            f"(score={best_score:.3f}, semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+        )
+
+    return False, (
+        f"Nguồn truy xuất đủ căn cứ sơ bộ "
+        f"(matched_terms={matched_terms[:8]}, score={best_score:.3f}, "
+        f"semantic={best_semantic:.3f}, keyword={best_keyword:.3f})."
+    )
 st.set_page_config(page_title="Vietnamese OCR + RAG Assistant", page_icon="📄", layout="wide")
 
 st.title("📄 Vietnamese OCR + RAG Assistant")
@@ -157,7 +346,25 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True,
     key=f"uploaded_files_{st.session_state.uploader_reset_counter}",
 )
+current_uploaded_signature = get_uploaded_files_signature(uploaded_files)
 
+if "last_uploaded_signature" not in st.session_state:
+    st.session_state.last_uploaded_signature = None
+
+if "indexed_signature" not in st.session_state:
+    st.session_state.indexed_signature = None
+
+if current_uploaded_signature != st.session_state.last_uploaded_signature:
+    # Nếu không phải lần đầu mở app, tức là người dùng đã thay đổi file upload
+    if st.session_state.last_uploaded_signature is not None:
+        clear_index_state_only()
+        st.info("Đã phát hiện file upload thay đổi. Chỉ mục cũ đã được xóa, hãy bấm “Xây dựng chỉ mục” để xử lý file mới.")
+
+    st.session_state.last_uploaded_signature = current_uploaded_signature
+
+    # Nếu người dùng xóa hết file upload thì index hiện tại cũng không còn hợp lệ
+    if current_uploaded_signature is None:
+        st.session_state.indexed_signature = None
 if "store" not in st.session_state:
     st.session_state.store = None
 if "embedder" not in st.session_state:
@@ -221,6 +428,7 @@ if build_index:
                 st.session_state.store = store
                 st.session_state.chunks = chunks
                 st.session_state.docs = all_docs
+                st.session_state.indexed_signature = current_uploaded_signature
 
                 st.success(f"Đã tạo chỉ mục: {len(all_docs)} trang/đơn vị văn bản, {len(chunks)} chunks.")
 
@@ -236,6 +444,8 @@ ask = st.button("Hỏi tài liệu", type="primary")
 if ask:
     if not question.strip():
         st.warning("Hãy nhập câu hỏi.")
+    elif current_uploaded_signature != st.session_state.get("indexed_signature"):
+        st.warning("File upload đã thay đổi hoặc chưa được xây dựng chỉ mục. Hãy bấm “Xây dựng chỉ mục” trước khi hỏi.")
     elif st.session_state.store is None or st.session_state.embedder is None:
         st.warning("Bạn cần xây dựng chỉ mục trước khi hỏi.")
     else:
@@ -247,11 +457,21 @@ if ask:
             min_score=min_score,
         )
 
-        answer = generate_answer(question, contexts)
+        refuse, refuse_reason = should_refuse_answer(question, contexts)
+
+        if refuse:
+            answer = "Tôi chưa tìm thấy dữ liệu đủ căn cứ trong tài liệu đã tải lên."
+        else:
+            answer = generate_answer(question, contexts)
+
         log_qa(question, answer, contexts)
 
         render_answer(answer)
+
         render_confidence(contexts)
+
+        if refuse:
+            st.caption(f"Lý do từ chối: {refuse_reason}")
         st.divider()
 
         with st.expander("Xem nguồn trích xuất từ tài liệu", expanded=False):
